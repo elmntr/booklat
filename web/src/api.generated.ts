@@ -123,6 +123,26 @@ export interface paths {
         patch: operations["override_word_api_sessions__session_id__words__idx__patch"];
         trace?: never;
     };
+    "/api/transcribe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Transcribe
+         * @description Accept encoded audio, never store it, and return words with audio timestamps.
+         */
+        post: operations["transcribe_api_transcribe_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -150,6 +170,18 @@ export interface components {
              * @default false
              */
             network_required: boolean;
+            /**
+             * Speech Available
+             * @default false
+             */
+            speech_available: boolean;
+            /** Speech Error */
+            speech_error?: string | null;
+            /**
+             * Speech Model
+             * @default rbcurzon/whisper-medium-ph
+             */
+            speech_model: string;
             /**
              * Status
              * @default ok
@@ -241,6 +273,30 @@ export interface components {
             learner_id: string;
             /** Passage Id */
             passage_id: string;
+        };
+        /** Transcription */
+        Transcription: {
+            /** Duration S */
+            duration_s: number;
+            /** Language */
+            language: string;
+            /** Model */
+            model: string;
+            /** Text */
+            text: string;
+            /** Words */
+            words: components["schemas"]["TranscriptionWord"][];
+        };
+        /** TranscriptionWord */
+        TranscriptionWord: {
+            /** End */
+            end: number;
+            /** Probability */
+            probability: number;
+            /** Start */
+            start: number;
+            /** Word */
+            word: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -456,6 +512,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Session"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transcribe_api_transcribe_post: {
+        parameters: {
+            query?: {
+                language?: "en" | "fil";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/octet-stream": string;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Transcription"];
                 };
             };
             /** @description Validation Error */

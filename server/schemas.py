@@ -10,6 +10,24 @@ class Health(BaseModel):
     mode: Literal["demo"] = "demo"
     models_loaded: bool = False
     network_required: bool = False
+    speech_available: bool = False
+    speech_model: str = "rbcurzon/whisper-medium-ph"
+    speech_error: str | None = None
+
+
+class TranscriptionWord(BaseModel):
+    word: str
+    start: float = Field(ge=0)
+    end: float = Field(ge=0)
+    probability: float = Field(ge=0, le=1)
+
+
+class Transcription(BaseModel):
+    text: str
+    language: str
+    duration_s: float = Field(ge=0)
+    model: str
+    words: list[TranscriptionWord]
 
 
 class Learner(BaseModel):

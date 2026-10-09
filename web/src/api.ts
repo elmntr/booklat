@@ -4,6 +4,21 @@ export const api = createClient<paths>();
 export type Session = components['schemas']['Session'];
 export type Passage = components['schemas']['Passage'];
 export type Learner = components['schemas']['Learner'];
+export type Transcription = components['schemas']['Transcription'];
+
+export async function transcribeAudio(audio: Blob, language: 'en' | 'fil', signal: AbortSignal): Promise<Transcription> {
+  if (!audio.size || audio.size > 10 * 1024 * 1024) {
+    throw new Error('Choose a non-empty audio recording up to 10 MiB.');
+  }
+  const response = await fetch(`/api/transcribe?language=${language}`, {
+    method: 'POST', body: audio, signal, headers: { 'Content-Type': 'application/octet-stream' },
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    throw new Error(typeof error?.detail === 'string' ? error.detail : 'Speech recognition failed. Please try again.');
+  }
+  return response.json();
+}
 export type MarkStatus = components['schemas']['MarkOverride']['status'];
 // WS wire schema: contracts/word-event.schema.json. Runtime validation below.
 export type WordEvent = components['schemas']['WordMark'] & { type: 'word'; session_id: string };
