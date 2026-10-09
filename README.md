@@ -33,10 +33,15 @@ passage determines the language: Filipino uses Whisper's `tl`, English uses `en`
 It also accepts an audio file. Recordings are limited to 120 seconds and 10 MiB;
 audio is decoded in memory and is never saved or sent to an external service.
 
+Download the [prepared CPU int8 model](https://github.com/elmntr/booklat/releases/tag/speech-model-v1)
+and extract it into `models/` (see [model installation](models/README.md)). Then run:
+
 ```sh
-npm run speech:setup
 npm run dev:speech
 ```
+
+To download and convert the original weights yourself instead, run
+`npm run speech:setup` before `npm run dev:speech`.
 
 On this prepared machine, first run `source /home/law/Desktop/Booklat/dev-env.sh`
 to select the installed Node 24 and uv. Stop any existing development servers before
@@ -46,8 +51,9 @@ Setup downloads the exact [`rbcurzon/whisper-medium-ph`](https://huggingface.co/
 checkpoint at revision `78c8f3e722ed5409eeb7c0b205bb3bf370cc19f5` (about 3.06 GB of
 source weights). It converts the Transformers checkpoint to CTranslate2 int8 in
 `models/whisper-medium-ph-ct2`, following [faster-whisper's conversion workflow](https://github.com/SYSTRAN/faster-whisper#model-conversion).
-Conversion uses CPU-only PyTorch; runtime uses CPU int8 without PyTorch. Keep the
-model folder private and untracked. The model's license is Apache-2.0.
+Conversion uses CPU-only PyTorch; runtime uses CPU int8 without PyTorch. Model
+weights are distributed through GitHub Releases and excluded from Git history.
+The upstream model card declares Apache-2.0; the release includes its license and attribution.
 
 After setup, runtime loads only that local folder with `local_files_only=True`.
 It does not download models during an assessment or fall back to simulated words.

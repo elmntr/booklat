@@ -10,5 +10,5 @@ web/dist/
 *.sqlite*
 *.wav
 *.pcm
-models/
+
 .DS_Store
