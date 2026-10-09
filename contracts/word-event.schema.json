@@ -1,0 +1,55 @@
+{
+  "properties": {
+    "heard_word": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Heard Word"
+    },
+    "passage_index": {
+      "minimum": 0,
+      "title": "Passage Index",
+      "type": "integer"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "correct",
+        "substitution",
+        "mispronunciation",
+        "omission",
+        "repetition"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "t": {
+      "minimum": 0,
+      "title": "T",
+      "type": "number"
+    },
+    "type": {
+      "const": "word",
+      "default": "word",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "passage_index",
+    "status",
+    "t",
+    "session_id"
+  ],
+  "title": "WordEvent",
+  "type": "object"
+}

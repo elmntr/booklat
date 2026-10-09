@@ -1,0 +1,578 @@
+{
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Health": {
+        "properties": {
+          "mode": {
+            "const": "demo",
+            "default": "demo",
+            "title": "Mode",
+            "type": "string"
+          },
+          "models_loaded": {
+            "default": false,
+            "title": "Models Loaded",
+            "type": "boolean"
+          },
+          "network_required": {
+            "default": false,
+            "title": "Network Required",
+            "type": "boolean"
+          },
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "Health",
+        "type": "object"
+      },
+      "Learner": {
+        "properties": {
+          "grade": {
+            "title": "Grade",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "section": {
+            "title": "Section",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "grade",
+          "section"
+        ],
+        "title": "Learner",
+        "type": "object"
+      },
+      "MarkOverride": {
+        "properties": {
+          "status": {
+            "enum": [
+              "correct",
+              "substitution",
+              "mispronunciation",
+              "omission",
+              "repetition"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "MarkOverride",
+        "type": "object"
+      },
+      "Passage": {
+        "properties": {
+          "grade": {
+            "title": "Grade",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "enum": [
+              "en",
+              "fil"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "words": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Words",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "language",
+          "grade",
+          "text",
+          "source",
+          "words"
+        ],
+        "title": "Passage",
+        "type": "object"
+      },
+      "Session": {
+        "properties": {
+          "accuracy_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accuracy Pct"
+          },
+          "duration_s": {
+            "default": 0,
+            "title": "Duration S",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "learner_id": {
+            "title": "Learner Id",
+            "type": "string"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level"
+          },
+          "marks": {
+            "items": {
+              "$ref": "#/components/schemas/WordMark"
+            },
+            "title": "Marks",
+            "type": "array"
+          },
+          "mode": {
+            "const": "demo",
+            "default": "demo",
+            "title": "Mode",
+            "type": "string"
+          },
+          "passage_id": {
+            "title": "Passage Id",
+            "type": "string"
+          },
+          "state": {
+            "default": "active",
+            "enum": [
+              "active",
+              "stopped"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "teacher_edited": {
+            "default": false,
+            "title": "Teacher Edited",
+            "type": "boolean"
+          },
+          "wpm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wpm"
+          }
+        },
+        "required": [
+          "id",
+          "learner_id",
+          "passage_id",
+          "marks"
+        ],
+        "title": "Session",
+        "type": "object"
+      },
+      "StartSession": {
+        "properties": {
+          "learner_id": {
+            "title": "Learner Id",
+            "type": "string"
+          },
+          "passage_id": {
+            "title": "Passage Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "learner_id",
+          "passage_id"
+        ],
+        "title": "StartSession",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WordMark": {
+        "properties": {
+          "heard_word": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heard Word"
+          },
+          "passage_index": {
+            "minimum": 0.0,
+            "title": "Passage Index",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "correct",
+              "substitution",
+              "mispronunciation",
+              "omission",
+              "repetition"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "t": {
+            "minimum": 0.0,
+            "title": "T",
+            "type": "number"
+          }
+        },
+        "required": [
+          "passage_index",
+          "status",
+          "t"
+        ],
+        "title": "WordMark",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Booklat local API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/api/learners": {
+      "get": {
+        "operationId": "learners_api_learners_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Learner"
+                  },
+                  "title": "Response Learners Api Learners Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Learners"
+      }
+    },
+    "/api/passages": {
+      "get": {
+        "operationId": "passages_api_passages_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Passage"
+                  },
+                  "title": "Response Passages Api Passages Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Passages"
+      }
+    },
+    "/api/sessions": {
+      "post": {
+        "operationId": "start_session_api_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartSession"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Session"
+      }
+    },
+    "/api/sessions/{session_id}": {
+      "get": {
+        "operationId": "read_session_api_sessions__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Session"
+      }
+    },
+    "/api/sessions/{session_id}/stop": {
+      "post": {
+        "operationId": "stop_session_api_sessions__session_id__stop_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stop Session"
+      }
+    },
+    "/api/sessions/{session_id}/words/{idx}": {
+      "patch": {
+        "operationId": "override_word_api_sessions__session_id__words__idx__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "idx",
+            "required": true,
+            "schema": {
+              "title": "Idx",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkOverride"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Override Word"
+      }
+    }
+  }
+}

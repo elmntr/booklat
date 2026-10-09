@@ -1,0 +1,4 @@
+[
+  {"id":"en-demo","title":"A book for Ana","language":"en","grade":3,"text":"Ana opens a book. She reads with her friend.","source":"Original development fixture; not an official Phil-IRI passage."},
+  {"id":"fil-demo","title":"Ang aklat ni Ana","language":"fil","grade":3,"text":"May aklat si Ana. Binabasa niya ito kasama si Ben.","source":"Original development fixture; not an official Phil-IRI passage."}
+]
