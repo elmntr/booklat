@@ -32,6 +32,27 @@
             "title": "Network Required",
             "type": "boolean"
           },
+          "speech_available": {
+            "default": false,
+            "title": "Speech Available",
+            "type": "boolean"
+          },
+          "speech_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speech Error"
+          },
+          "speech_model": {
+            "default": "rbcurzon/whisper-medium-ph",
+            "title": "Speech Model",
+            "type": "string"
+          },
           "status": {
             "const": "ok",
             "default": "ok",
@@ -245,6 +266,75 @@
           "passage_id"
         ],
         "title": "StartSession",
+        "type": "object"
+      },
+      "Transcription": {
+        "properties": {
+          "duration_s": {
+            "minimum": 0.0,
+            "title": "Duration S",
+            "type": "number"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/TranscriptionWord"
+            },
+            "title": "Words",
+            "type": "array"
+          }
+        },
+        "required": [
+          "text",
+          "language",
+          "duration_s",
+          "model",
+          "words"
+        ],
+        "title": "Transcription",
+        "type": "object"
+      },
+      "TranscriptionWord": {
+        "properties": {
+          "end": {
+            "minimum": 0.0,
+            "title": "End",
+            "type": "number"
+          },
+          "probability": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Probability",
+            "type": "number"
+          },
+          "start": {
+            "minimum": 0.0,
+            "title": "Start",
+            "type": "number"
+          },
+          "word": {
+            "title": "Word",
+            "type": "string"
+          }
+        },
+        "required": [
+          "word",
+          "start",
+          "end",
+          "probability"
+        ],
+        "title": "TranscriptionWord",
         "type": "object"
       },
       "ValidationError": {
@@ -572,6 +662,62 @@
           }
         },
         "summary": "Override Word"
+      }
+    },
+    "/api/transcribe": {
+      "post": {
+        "description": "Accept encoded audio, never store it, and return words with audio timestamps.",
+        "operationId": "transcribe_api_transcribe_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "language",
+            "required": false,
+            "schema": {
+              "default": "fil",
+              "enum": [
+                "en",
+                "fil"
+              ],
+              "title": "Language",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transcription"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transcribe"
       }
     }
   }

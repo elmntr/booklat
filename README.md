@@ -24,7 +24,58 @@ Audio is discarded; it is not sent to speech recognition yet.
 Select a passage, start simulated reading, stop, then tap a marked word to override it.
 This is a **development fixture**, not an assessment: no ASR, VAD, database,
 CSV export, comprehension grader or official reading levels yet. Session data resets
+This is a **development fixture**, not an assessment. The separate speech panel supports
+microphone/file transcription after the optional setup below. Passage alignment,
+database, CSV export, comprehension grading and official reading levels are not connected yet.
+Session data resets
 on API reload/restart. Fixture passages and learners are synthetic.
+
+## Local speech recognition
+
+The speech panel records a reading and transcribes it after Stop. The selected
+passage determines the language: Filipino uses Whisper's `tl`, English uses `en`.
+It also accepts an audio file. Recordings are limited to 120 seconds and 10 MiB;
+audio is decoded in memory and is never saved or sent to an external service.
+
+```sh
+npm run speech:setup
+npm run dev:speech
+```
+
+On this prepared machine, first run `source /home/law/Desktop/Booklat/dev-env.sh`
+to select the installed Node 24 and uv. Stop any existing development servers before
+running `dev:speech`, because both commands use ports 8000 and 5173.
+
+Setup downloads the exact [`rbcurzon/whisper-medium-ph`](https://huggingface.co/rbcurzon/whisper-medium-ph)
+checkpoint at revision `78c8f3e722ed5409eeb7c0b205bb3bf370cc19f5` (about 3.06 GB of
+source weights). It converts the Transformers checkpoint to CTranslate2 int8 in
+`models/whisper-medium-ph-ct2`, following [faster-whisper's conversion workflow](https://github.com/SYSTRAN/faster-whisper#model-conversion).
+Conversion uses CPU-only PyTorch; runtime uses CPU int8 without PyTorch. Keep the
+model folder private and untracked. The model's license is Apache-2.0.
+
+After setup, runtime loads only that local folder with `local_files_only=True`.
+It does not download models during an assessment or fall back to simulated words.
+The first transcription loads the model; `/api/health` reports `speech_available`
+and `models_loaded` separately. One transcription runs at a time; another gets 409.
+Microphone denial, missing models, invalid audio and upload limits surface as errors.
+
+Decoding uses `temperature=0`, `condition_on_previous_text=False`, word timestamps,
+and faster-whisper's bundled Silero VAD. The passage is never supplied as a prompt.
+ONNX Runtime telemetry is disabled before it initializes, using
+[`ORT_DISABLE_TELEMETRY=1`](https://github.com/microsoft/onnxruntime/blob/main/docs/Privacy.md).
+The transcript and timestamps are component 2's output for a future aligner.
+**No live passage marking or real assessment scores are produced by ASR yet.**
+Medium is expensive on older CPUs; benchmark classroom speech and deliberate miscues
+before relying on it. The model card does not claim reliable children's reading assessment.
+
+On this machine (i3-7020U, two inference threads), two 8-second public speech clips
+took 20.82 seconds for English (including first model load) and 19.11 seconds for
+Tagalog (warm model). Both returned word timestamps without network access.
+The Tagalog transcript contained errors; these smoke tests are not an accuracy
+benchmark. Medium does not keep up with real time on this CPU in these checks.
+
+For speech decoder coverage, run `uv run --locked --extra speech pytest` after setup.
+The lightweight default checks skip only the decoder test when PyAV/NumPy are absent.
 
 ## Two-person ownership
 
@@ -54,7 +105,10 @@ packaging and serving the UI from FastAPI remain backend integration work.
 ## Repository map
 
 - `server/schemas.py`: canonical REST models and WebSocket word-event model
-- `server/main.py`: runnable, in-memory demo API
+- `server/main.py`: local transcription endpoint and in-memory demo API
+- `server/asr.py`: bounded audio decoding and offline faster-whisper inference
+- `scripts/setup_speech.py`: pinned model download and CPU int8 conversion
+- `web/src/SpeechCapture.tsx`: microphone/file input and transcript display
 - `web/src/api.ts`: shared typed REST client and WebSocket validation
 - `contracts/`: generated, reviewable wire schemas
 - `data/passages/`: original development fixtures

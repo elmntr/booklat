@@ -1,13 +1,16 @@
-"""Integration scaffold. Synthetic words only; no microphone or ASR yet."""
+"""Local speech transcription and the separately labelled synthetic reading demo."""
 
 import asyncio
 import json
 from pathlib import Path
 from time import monotonic
+from typing import Literal
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from starlette.concurrency import run_in_threadpool
 
+from server import asr
 from server.schemas import (
     Health,
     Learner,
@@ -15,6 +18,7 @@ from server.schemas import (
     Passage,
     Session,
     StartSession,
+    Transcription,
     WordEvent,
     WordMark,
 )
@@ -41,7 +45,41 @@ def get_session(session_id: str) -> Session:
 
 @app.get("/api/health", response_model=Health)
 def health():
-    return Health()
+    error = asr.availability_error()
+    return Health(
+        models_loaded=asr.recognizer.model is not None,
+        speech_available=error is None, speech_error=error,
+    )
+
+
+@app.post(
+    "/api/transcribe", response_model=Transcription,
+    openapi_extra={"requestBody": {
+        "required": True,
+        "content": {"application/octet-stream": {
+            "schema": {"type": "string", "format": "binary"},
+        }},
+    }},
+)
+async def transcribe(request: Request, language: Literal["en", "fil"] = "fil"):
+    """Accept encoded audio, never store it, and return words with audio timestamps."""
+    if error := asr.availability_error():
+        raise HTTPException(503, error)
+    data = bytearray()
+    async for chunk in request.stream():
+        if len(data) + len(chunk) > asr.MAX_UPLOAD_BYTES:
+            raise HTTPException(413, "Audio upload exceeds 10 MiB.")
+        data.extend(chunk)
+    if not data:
+        raise HTTPException(422, "The recording is empty.")
+    try:
+        return await run_in_threadpool(asr.recognizer.transcribe, bytes(data), language)
+    except asr.SpeechUnavailable as error:
+        raise HTTPException(503, str(error)) from error
+    except asr.SpeechBusy as error:
+        raise HTTPException(409, str(error)) from error
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
 
 
 @app.get("/api/learners", response_model=list[Learner])

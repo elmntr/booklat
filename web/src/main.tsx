@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { api, parseWordEvent, statuses, streamUrl, type Learner, type Passage, type Session } from './api';
 import './style.css';
 import { MicrophoneCapture } from './MicrophoneCapture';
+import { SpeechCapture } from './SpeechCapture';
 
 function App() {
   const [passages, setPassages] = useState<Passage[]>([]);
@@ -13,6 +14,8 @@ function App() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [online, setOnline] = useState(false);
+  const [speechAvailable, setSpeechAvailable] = useState(false);
+  const [speechBusy, setSpeechBusy] = useState(false);
   const socket = useRef<WebSocket | null>(null);
   useEffect(() => {
     let mounted = true;
@@ -21,6 +24,7 @@ function App() {
         if (!p.data || !l.data || !h.data) throw new Error('API unavailable');
         if (!mounted) return;
         setPassages(p.data); setLearners(l.data); setOnline(true);
+        setSpeechAvailable(h.data.speech_available);
         setPassageId(p.data[0]?.id ?? ''); setLearnerId(l.data[0]?.id ?? '');
       }).catch(() => { if (mounted) setError('Cannot reach the local API. Start both services and reload.'); });
     return () => { mounted = false; socket.current?.close(); };
@@ -69,16 +73,19 @@ function App() {
     <header><span className="brand">Booklat</span><span>{online ? 'Local API connected' : 'Connecting…'}</span></header>
     <h1>Open a book.<br/>Make room for every reader.</h1>
     <p className="notice">Development demo · Simulated words · Speech recognition is not connected.</p>
+    <p className="notice">Local speech transcription · Passage marking below remains a separate simulated demo.</p>
     {error && <p role="alert">{error}</p>}
     <MicrophoneCapture />
     <section className="controls">
-      <label>Learner<select disabled={session?.state === 'active' || busy} value={learnerId} onChange={e => { setLearnerId(e.target.value); setSession(undefined); }}>
+      <label>Learner<select disabled={session?.state === 'active' || busy || speechBusy} value={learnerId} onChange={e => { setLearnerId(e.target.value); setSession(undefined); }}>
         {learners.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
       </select></label>
-      <label>Passage<select disabled={session?.state === 'active' || busy} value={passageId} onChange={e => { setPassageId(e.target.value); setSession(undefined); }}>
+      <label>Passage<select disabled={session?.state === 'active' || busy || speechBusy} value={passageId} onChange={e => { setPassageId(e.target.value); setSession(undefined); }}>
         {passages.map(p => <option key={p.id} value={p.id}>{p.title} ({p.language})</option>)}
       </select></label>
     </section>
+    {passage && session?.state !== 'active' && <SpeechCapture
+      key={passage.id} language={passage.language} available={speechAvailable} onBusy={setSpeechBusy}/>}
     <section><h2>{passage?.title ?? 'Loading passages…'}</h2><p>{passage?.source}</p>
       <div className="passage">{passage?.words.map((word, idx) => {
         const mark = session?.marks.find(m => m.passage_index === idx);
@@ -90,7 +97,7 @@ function App() {
       <p>After stopping, tap a marked word to change its status.</p>
       <div className="legend">{statuses.map(s => <span key={s} className={s}>{s}</span>)}</div>
     </section>
-    <button className="primary" disabled={busy || !passage || !learnerId || !online}
+    <button className="primary" disabled={busy || speechBusy || !passage || !learnerId || !online}
       onClick={() => run(session?.state === 'active' ? stop : start)}>
       {busy ? 'Working…' : session?.state === 'active' ? 'Stop demo' : 'Start simulated reading'}
     </button>

@@ -7,12 +7,17 @@
   "scripts": {
     "dev": "concurrently --kill-others -n api,web \"npm run dev:api\" \"npm run dev:web\"",
     "dev:api": "uv run uvicorn server.main:app --reload --host 127.0.0.1 --port 8000",
+    "dev:speech": "concurrently --kill-others -n api,web \"npm run dev:api:speech\" \"npm run dev:web\"",
+    "dev:api:speech": "uv run --locked --extra speech uvicorn server.main:app --reload --reload-dir server --host 127.0.0.1 --port 8000",
+    "speech:setup": "uv run --locked --extra speech --extra model-setup python -m scripts.setup_speech",
     "dev:web": "npm run dev --workspace web",
     "contract": "uv run python -m scripts.export_contract && openapi-typescript contracts/openapi.json -o web/src/api.generated.ts",
     "contract:check": "uv run python -m scripts.check_contract",
     "check": "uv run ruff check . && uv run pytest && npm run test:audio && npm run build --workspace web",
     "build": "npm run build --workspace web",
     "test:audio": "node --test web/src/audio.test.mjs"
+    "check": "uv run ruff check . && uv run pytest && node --experimental-strip-types web/tests/recording.test.ts && npm run build --workspace web",
+    "build": "npm run build --workspace web"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

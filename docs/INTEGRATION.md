@@ -9,13 +9,40 @@ there are no separate browser-side backend URLs or CORS settings to synchronize.
 
 | Method | Route | Response |
 |---|---|---|
-| GET | `/api/health` | `status: ok`, `mode: demo`, `models_loaded: false`, `network_required: false` |
+| GET | `/api/health` | Demo mode plus local speech availability and model-loading state; no runtime network required |
 | GET | `/api/learners` | Synthetic learners |
 | GET | `/api/passages` | Passage text and canonical ordered `words` |
 | POST | `/api/sessions` | 201 session; body `{learner_id, passage_id}` |
 | GET | `/api/sessions/{session_id}` | Current state and marks |
 | POST | `/api/sessions/{session_id}/stop` | Idempotent stopped session |
 | PATCH | `/api/sessions/{session_id}/words/{idx}` | Updated session; body `{status}` |
+| POST | `/api/transcribe?language=fil` | Transcript and word timestamps; raw encoded audio body |
+
+## Speech transcription (component 2)
+
+`POST /api/transcribe` consumes a raw WAV, WebM, MP4 or Ogg recording with
+`Content-Type: application/octet-stream`. The `language` query accepts `fil` (default)
+or `en`; Filipino maps to Whisper's `tl`. The response is separate from demo sessions:
+
+```json
+{"text":"May aklat si Ana.","language":"tl","duration_s":2.5,"model":"rbcurzon/whisper-medium-ph","words":[{"word":"May","start":0.1,"end":0.4,"probability":0.9}]}
+```
+
+Word timestamps are seconds in the submitted audio, not passage indices. These are
+ASR hypotheses, not correct/error judgements. Nothing is written to session marks.
+No transcript or audio is persisted; the caller displays the response.
+
+Upload bytes are bounded while receiving (10 MiB); decoding resamples to mono 16 kHz
+and rejects audio exceeding 120 seconds before inference. Empty/undecodable/overlong
+audio returns 422, oversized uploads 413, concurrent inference 409, unavailable
+dependencies/model 503. Unexpected inference failures return 500. The existing
+synthetic WebSocket endpoint is unchanged and must not receive microphone audio.
+
+`/api/health` keeps `mode: demo` for the passage-marking fixture and adds
+`speech_available`, `speech_model`, and `speech_error`. `models_loaded` becomes true
+after the speech model has successfully loaded. The speech panel is enabled only
+when local dependencies and converted model assets exist. Use `npm run dev:speech`
+to keep the optional speech dependencies installed; `npm run dev` remains lightweight.
 
 Use the server's words array; do not independently tokenize the text. Indices are
 zero-based. Missing resources return 404; invalid request data 422; overriding an
@@ -41,7 +68,7 @@ Normal completion closes with 1000. The UI must still POST stop to finalize.
 Reconnecting an active demo session continues after stored marks. Stop prevents
 further events; GET session is authoritative after an interruption.
 
-## Next contract agreement: real audio (not implemented)
+## Next contract agreement: streaming audio (not implemented)
 
 Before wiring microphone capture, jointly define:
 - Client binary PCM: signed Int16 little-endian, mono 16,000 Hz, approximately 250 ms
@@ -57,7 +84,7 @@ REST alone is described by OpenAPI; WebSocket event schema is exported separatel
 
 ## Remaining backend boundaries
 
-Add `server/asr.py`, `aligner.py`, `scorer.py`, and `db.py` as the implementation grows.
+Add `aligner.py`, `scorer.py`, and `db.py` as the implementation grows.
 Keep ML dependencies optional so frontend contributors can retain lightweight setup.
 Scoring rules must be validated against the manual before returning reading levels.
 SQLite, CSV export and comprehension endpoints in the original plan are not yet implemented.
