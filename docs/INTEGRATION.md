@@ -61,3 +61,30 @@ Add `server/asr.py`, `aligner.py`, `scorer.py`, and `db.py` as the implementatio
 Keep ML dependencies optional so frontend contributors can retain lightweight setup.
 Scoring rules must be validated against the manual before returning reading levels.
 SQLite, CSV export and comprehension endpoints in the original plan are not yet implemented.
+
+## Microphone capture (implemented, local check only)
+
+`web/src/audio.ts` exposes `captureMicrophone(signal, onFrame, onError)`.
+It returns an async `stop()` that flushes the final partial frame before cleanup.
+Aborting the signal cancels capture immediately, including late permission grants.
+`onFrame` receives `{ pcm: ArrayBuffer, rms: number }`:
+
+- Signed PCM16 little-endian, mono 16 kHz, no header.
+- Full frames: 4,000 samples / 8,000 bytes / 250 ms.
+- The final frame can be shorter; consume its byte length, not a fixed size.
+- A 16 kHz AudioContext performs device-rate conversion; unsupported browsers fail
+  explicitly. See [AudioContext sample rate](https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/sampleRate).
+- Microphone check discards every frame after updating the meter/counts. No recording
+  is accumulated, saved, or transmitted. The meter is RMS scaled for display.
+
+Backend handoff: call this helper only after the future audio-ready handshake;
+forward each `pcm` buffer via the agreed transport with bounded backpressure.
+Await `stop()` before sending end-of-audio and waiting for the backend flush/score.
+Abort capture on transport failure or component unmount. No backend files or wire
+schemas were changed for this feature.
+
+Run `npm run test:audio` for PCM and mocked resource-lifecycle tests.
+Manual hardware check in Chrome at localhost: start microphone check, allow access,
+speak and confirm the meter moves, stop and verify the browser mic indicator turns
+ off. Repeat with blocked permission, unplugged microphone and cancellation while
+permission is pending. Hardware/device-rate conversion still needs a physical mic check.

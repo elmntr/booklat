@@ -10,8 +10,9 @@
     "dev:web": "npm run dev --workspace web",
     "contract": "uv run python -m scripts.export_contract && openapi-typescript contracts/openapi.json -o web/src/api.generated.ts",
     "contract:check": "uv run python -m scripts.check_contract",
-    "check": "uv run ruff check . && uv run pytest && npm run build --workspace web",
-    "build": "npm run build --workspace web"
+    "check": "uv run ruff check . && uv run pytest && npm run test:audio && npm run build --workspace web",
+    "build": "npm run build --workspace web",
+    "test:audio": "node --test web/src/audio.test.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

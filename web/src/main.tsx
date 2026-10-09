@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { api, parseWordEvent, statuses, streamUrl, type Learner, type Passage, type Session } from './api';
 import './style.css';
+import { MicrophoneCapture } from './MicrophoneCapture';
 
 function App() {
   const [passages, setPassages] = useState<Passage[]>([]);
@@ -67,8 +68,9 @@ function App() {
   return <main>
     <header><span className="brand">Booklat</span><span>{online ? 'Local API connected' : 'Connecting…'}</span></header>
     <h1>Open a book.<br/>Make room for every reader.</h1>
-    <p className="notice">Development demo · Simulated words · Microphone and speech models are not connected.</p>
+    <p className="notice">Development demo · Simulated words · Speech recognition is not connected.</p>
     {error && <p role="alert">{error}</p>}
+    <MicrophoneCapture />
     <section className="controls">
       <label>Learner<select disabled={session?.state === 'active' || busy} value={learnerId} onChange={e => { setLearnerId(e.target.value); setSession(undefined); }}>
         {learners.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
