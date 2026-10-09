@@ -13,6 +13,9 @@
     "dev:web": "npm run dev --workspace web",
     "contract": "uv run python -m scripts.export_contract && openapi-typescript contracts/openapi.json -o web/src/api.generated.ts",
     "contract:check": "uv run python -m scripts.check_contract",
+    "check": "uv run ruff check . && uv run pytest && npm run test:audio && npm run build --workspace web",
+    "build": "npm run build --workspace web",
+    "test:audio": "node --test web/src/audio.test.mjs"
     "check": "uv run ruff check . && uv run pytest && node --experimental-strip-types web/tests/recording.test.ts && npm run build --workspace web",
     "build": "npm run build --workspace web"
   },

@@ -19,7 +19,11 @@ Both servers bind to loopback. Ctrl+C stops both. Alternatively run
 `npm run dev:api` and `npm run dev:web` in separate terminals.
 Python dependencies live in `.venv`; do not install into system Python.
 
+Use **Start microphone check** to test local audio capture and its input-level meter.
+Audio is discarded; it is not sent to speech recognition yet.
 Select a passage, start simulated reading, stop, then tap a marked word to override it.
+This is a **development fixture**, not an assessment: no ASR, VAD, database,
+CSV export, comprehension grader or official reading levels yet. Session data resets
 This is a **development fixture**, not an assessment. The separate speech panel supports
 microphone/file transcription after the optional setup below. Passage alignment,
 database, CSV export, comprehension grading and official reading levels are not connected yet.
